@@ -1,0 +1,30 @@
+{
+  "DetectionParameters":
+  {
+    "threshold_low": "50",
+    "min_area": "100",
+    "blur_size": "11",
+    "blur_power": "1"
+  },
+  "BotParameters":
+  {
+    "token": "",
+    "sending_period": "30",
+    "chat_id": "",
+    "proxy_url": "",
+	"username": "",
+	"password": ""
+  },
+    "NNParameters":
+  {
+    "net_architecture": "dnn/MobileNetSSD_deploy.prototxt.txt",
+    "net_model": "dnn/MobileNetSSD_deploy.caffemodel",
+    "classes": [
+      "background", "aeroplane", "bicycle", "bird", "boat",
+    "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
+    "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+    "sofa", "train", "tvmonitor"
+    ],
+    "confidence": "0.2"
+  }
+}

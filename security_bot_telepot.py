@@ -10,15 +10,15 @@ import telepot
 from threading import Thread
 from datetime import datetime
 from telepot.loop import MessageLoop
-# from re import findall  # Импортируем библиотеку по работе с регулярными выражениями
-# from subprocess import check_output  # Импортируем библиотеку по работе с внешними процессами
+from re import findall  # Импортируем библиотеку по работе с регулярными выражениями
+from subprocess import check_output  # Импортируем библиотеку по работе с внешними процессами
 
 from src.camera import Camera
 from src.tools.param_manage import get_detection_parameters, get_bot_parameters, get_nn_parameters
 from src.tools.video_record import create_video
 
 running = False
-show_edges = False
+show_edges = True
 alarm_bot_status = False
 dnn_detection_status = False
 
@@ -54,10 +54,17 @@ def grab():
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
     while running:
-        img, jpeg, detection_status = camera.motion_detect(running, out, show_edges, dnn_detection_status, net,
+        
+        img, detection_status = camera.motion_detect(running, out, show_edges, dnn_detection_status, net,
                                                            classes, colors, float(confidence), int(min_area),
                                                            int(blur_size), int(blur_size), int(threshold_low),
                                                            int(sending_period))
+                                                           
+        '''
+        img = camera.real_time_detection_2(dnn_detection_status, net,
+                                          classes, colors, float(confidence))
+        '''
+        
         cv2.imshow("Camera", img)
         # Ожидание нажания клавиши "q"
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -139,7 +146,6 @@ def send_photo(chat_type, chat_id):
     print("{} - bot sent image into {} chat: {}".format(now, chat_type, chat_id))
 
 
-'''
 def get_temp(chat_type, chat_id):
     temp = check_output(["vcgencmd","measure_temp"]).decode() # Выполняем запрос температуры
     temp = float(findall('\d+\.\d+', temp)[0])
@@ -148,13 +154,12 @@ def get_temp(chat_type, chat_id):
     now = datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
     bot.sendMessage(chat_id, message)
     print ("{} - bot answered into {} chat: {}".format(now, chat_type, chat_id)) 
-'''
 
 
 # Send alarm photo
 def alarm():
     global send_time
-    while False:
+    while alarm_bot_status:
         if os.path.exists('photo/screenshot_temp.png'):
             file_create_time = os.path.getmtime('photo/screenshot_temp.png')
             if send_time != file_create_time:
@@ -173,7 +178,7 @@ commands = {
     "/photo": send_photo,
     "/start_camera": start_camera,
     "/stop_camera": stop_camera,
-    # "/temp": get_temp,
+    "/temp": get_temp,
 }
 #############################
 
