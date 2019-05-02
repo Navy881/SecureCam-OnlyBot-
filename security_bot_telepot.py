@@ -10,8 +10,8 @@ import telepot
 from threading import Thread
 from datetime import datetime
 from telepot.loop import MessageLoop
-from re import findall  # Импортируем библиотеку по работе с регулярными выражениями
-from subprocess import check_output  # Импортируем библиотеку по работе с внешними процессами
+from re import findall
+from subprocess import check_output
 
 from src.camera import Camera
 from src.tools.param_manage import get_detection_parameters, get_bot_parameters, get_nn_parameters
@@ -21,24 +21,21 @@ running = False
 show_edges = True
 alarm_bot_status = False
 dnn_detection_status = False
-
 capture_thread = None
-
 detection_status = ''
 v_filename = ''
+
 star_time = datetime.now().replace(microsecond=0)
 
-# Get config params
 min_area, blur_size, blur_power, threshold_low = get_detection_parameters()
 bot_token, request_kwargs, private_chat_id, proxy_url, sending_period, username, password = get_bot_parameters()
-net_architecture, net_model, classes, confidence = get_nn_parameters()  # Get NN parameters
+net_architecture, net_model, classes, confidence = get_nn_parameters()
 
-# Proxy
 SetProxy = telepot.api.set_proxy(proxy_url, (username, password))
 bot = telepot.Bot(bot_token)
 
-CAM = 0  # TODO вывести в настройки
-FPS = 10  # TODO вывести в настройки
+CAM = 0  # TODO to config
+FPS = 10  # TODO to config
 camera = Camera(CAM, FPS)
 
 send_time = datetime.today().timestamp()
@@ -48,51 +45,39 @@ def grab():
     global v_filename, detection_status, dnn_detection_status
 
     out, v_filename = create_video()
-    # load our serialized model from disk
     print("[INFO] loading model...")
-    net = cv2.dnn.readNetFromCaffe(net_architecture, net_model)
+    net = cv2.dnn.readNetFromCaffe(net_architecture, net_model)  # Load serialized model from disk
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
     while running:
-        
         img, detection_status = camera.motion_detect(running, out, show_edges, dnn_detection_status, net,
-                                                           classes, colors, float(confidence), int(min_area),
-                                                           int(blur_size), int(blur_size), int(threshold_low),
-                                                           int(sending_period))
-                                                           
-        '''
-        img = camera.real_time_detection_2(dnn_detection_status, net,
-                                          classes, colors, float(confidence))
-        '''
-        
+                                                     classes, colors, float(confidence), int(min_area),
+                                                     int(blur_size), int(blur_size), int(threshold_low),
+                                                     int(sending_period))
         cv2.imshow("Camera", img)
-        # Ожидание нажания клавиши "q"
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cv2.destroyAllWindows()
 
 
-# Start camera
 def start_camera(chat_type, chat_id):
     global running, capture_thread
 
     if running is False:
         print("Starting")
         running = True
-        capture_thread = Thread(target=grab, args=())  # поток для работы детектора
+        capture_thread = Thread(target=grab, args=())  # Thread for detector
         capture_thread.start()
         print("Started")
         message = "Record started..."
     else:
         message = "Record already started..."
 
-    # Time sending message
     now = datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
     bot.sendMessage(chat_id, message)
     print("{} - bot answered into {} chat: {}".format(now, chat_type, chat_id))
 
 
-# Stop camera
 def stop_camera(chat_type, chat_id):
     global running, capture_thread
 
@@ -105,15 +90,12 @@ def stop_camera(chat_type, chat_id):
     else:
         message = "Nothing running..."
 
-    # Time sending message
     now = datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
     bot.sendMessage(chat_id, message)
     print("{} - bot answered into {} chat: {}".format(now, chat_type, chat_id))
 
 
-# Send help info
 def send_help_info(chat_type, chat_id):
-    # Time sending message
     now = datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
     help_message = "You can use commands:\n" \
                    "/check - checking work,\n" \
@@ -127,36 +109,28 @@ def send_help_info(chat_type, chat_id):
     print("{} - bot answered into {} chat: {}".format(now, chat_type, chat_id))
 
 
-# Sending message
 def send_sign_of_life(chat_type, chat_id):
-    # Time sending message
     now = datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
     bot.sendMessage(chat_id, text="I'm work")
     print("{} - bot answered into {} chat: {}".format(now, chat_type, chat_id))
 
 
-# Send photo
 def send_photo(chat_type, chat_id):
-    # Make screenshot from webcam
-    camera.make_screenshot()
-    # Time sending message
+    camera.make_screenshot()  # Make screenshot
     now = datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
-    # Send saved photo by motionRecoder
     bot.sendPhoto(chat_id, photo=open('photo/bot_screenshot.png', 'rb'))
     print("{} - bot sent image into {} chat: {}".format(now, chat_type, chat_id))
 
 
 def get_temp(chat_type, chat_id):
-    temp = check_output(["vcgencmd","measure_temp"]).decode() # Выполняем запрос температуры
+    temp = check_output(["vcgencmd", "measure_temp"]).decode()  # Request temperature
     temp = float(findall('\d+\.\d+', temp)[0])
     message = "Temperature is " + str(temp) + " C"
-    # Time sending message
     now = datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
     bot.sendMessage(chat_id, message)
-    print ("{} - bot answered into {} chat: {}".format(now, chat_type, chat_id)) 
+    print("{} - bot answered into {} chat: {}".format(now, chat_type, chat_id))
 
 
-# Send alarm photo
 def alarm():
     global send_time
     while alarm_bot_status:
@@ -171,7 +145,9 @@ def alarm():
                 send_time = os.path.getmtime('photo/screenshot_temp.png')
 
 
-# Commands ##################
+"""
+Commands for bot
+"""
 commands = {
     "/check": send_sign_of_life,
     "/help": send_help_info,
@@ -180,14 +156,10 @@ commands = {
     "/stop_camera": stop_camera,
     "/temp": get_temp,
 }
-#############################
 
 
-# Main method
 def main(msg):
-    # Определение типа сообещения, типа чата и id чата
     content_type, chat_type, chat_id = telepot.glance(msg)
-    # Если в сообщении текст
     if content_type == 'text':
         command = msg['text']
         if command in commands.keys():
@@ -199,7 +171,6 @@ def main(msg):
 if __name__ == '__main__':
     try:
         print("bot running...")
-        # Enable logging
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         logger = logging.getLogger(__name__)
         MessageLoop(bot, main).run_as_thread()
