@@ -135,7 +135,6 @@ class Camera(object):
 
         return frame
 
-    
     def real_time_detection_2(self, dnn_detection_status, net, classes, colors, given_confidence):
         while dnn_detection_status:
             ret, frame = self.video.read()
@@ -173,4 +172,3 @@ class Camera(object):
                     cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[idx], 2)
 
             return frame
-
