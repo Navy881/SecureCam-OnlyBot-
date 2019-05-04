@@ -10,13 +10,11 @@ photo_dir = "photo/"
 
 def create_video():
     date = datetime.now().strftime("%d-%m-%Y_(%H-%M-%S_%p)")
-    # Формат видеоряда
-    fourcc = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')
+    fourcc = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')  # Video format
 
     if not os.path.exists(video_dir):
         os.makedirs(video_dir)
 
-    # Вывод видеоряда в файл
     videofile_name = video_dir+date+".avi"
     print(videofile_name)
     out = cv2.VideoWriter(videofile_name, fourcc, 30.0, (640, 480))
@@ -24,7 +22,6 @@ def create_video():
 
 
 def record(out, frame):
-    # Зависать изображение в видеофайл
     out.write(frame)
 
 

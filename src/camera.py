@@ -138,7 +138,6 @@ class Camera(object):
     
     def real_time_detection_2(self, dnn_detection_status, net, classes, colors, given_confidence):
         while dnn_detection_status:
-            # Чтение видеоканала cap, frame - изображение
             ret, frame = self.video.read()
             # frame = imutils.resize(frame, width=400)
 
@@ -174,4 +173,4 @@ class Camera(object):
                     cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[idx], 2)
 
             return frame
-    
+
