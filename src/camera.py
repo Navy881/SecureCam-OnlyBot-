@@ -57,7 +57,7 @@ class Camera(object):
             thresh = cv2.threshold(frame_delta, threshold_low, 255, cv2.THRESH_BINARY)[1]  # Frame_delta binarization
             thresh = cv2.dilate(thresh, None, iterations=2)  # Noise suppression
 
-            _, cnts, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cnts, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             cv2.putText(frame, "Camera 1", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
             cv2.putText(frame, datetime.now().strftime("%d-%m-%Y %H:%M:%S%p"), (10, frame.shape[0] - 10),
